@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="terms">
+    <select id="getTerms">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            is_required,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            terms
+        <if test="searchText and searchText != ''">
+        WHERE
+            title LIKE #{text}
+        </if>
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <select id="getTerm">
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            is_required,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            terms
+        WHERE
+            id = UNHEX(#{termId})
+    </select>
+    <insert id="addTerm">
+        INSERT INTO terms
+        (
+            id,
+            title,
+            content,
+            is_required,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{content},
+            #{isRequired},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <update id="updateTerm">
+        UPDATE terms
+        SET
+            title = #{title},
+            content = #{content},
+            is_required = #{isRequired}
+        WHERE
+            id = UNHEX(#{termId})
+    </update>
+    <delete id="deleteTerm">
+        DELETE
+        FROM
+            terms
+        WHERE
+            id = UNHEX(#{termId})
+    </delete>
+</mapper>

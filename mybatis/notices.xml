@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="notices">
+    <select id="getNoticeList">
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            status,
+            image_path,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            notices
+        ORDER BY
+            created_at DESC
+    </select>
+    <select id="getNotices">
+        <bind name="text" value="'$'+searchText+'$'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            status,
+            image_path,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            notices
+        <if test="searchText and searchText!=''">
+        WHERE
+            title LIKE #{text}
+        </if>
+        ORDER BY
+            created_at DESC
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <select id="getNotice">
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            status,
+            image_path,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            notices
+        WHERE
+            id = UNHEX(#{noticeId})
+    </select>
+    <insert id="addNotice">
+        INSERT INTO notices
+        (
+            id,
+            title,
+            image_path,
+            <if test="content and content != ''">
+                content,
+            </if>
+            status,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{imagePath},
+            <if test="content and content != ''">
+                #{content},
+            </if>
+            'A',
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <update id="updateNotice">
+        UPDATE notices
+        SET
+            title = #{title},
+            content = #{content},
+            status = #{status},
+            image_path = #{imagePath},
+            updated_at = NOW()
+        WHERE
+            id = UNHEX(#{noticeId})
+    </update>
+    <delete id="deleteNotice">
+        DELETE
+        FROM
+            notices
+        WHERE
+            id = UNHEX(#{noticeId})
+    </delete>
+</mapper>

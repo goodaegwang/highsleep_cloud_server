@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="join">
+    <insert id="join">
+        INSERT INTO users
+        (
+            user_id,
+            name,
+            type,
+            status,
+            password,
+            password_updated_at,
+            phone,
+            birthday,
+            is_stay_login,
+            joined_at,
+            updated_at
+        ) VALUES (
+            #{userId},
+            #{name},
+            #{type},
+            'A',
+            #{password},
+            NOW(),
+            #{phone},
+            #{birthday},
+            'N',
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <select id="isIdDuplicate">
+        SELECT
+            user_id
+        FROM
+            users
+        WHERE
+            user_id = #{userId}
+    </select>
+</mapper>

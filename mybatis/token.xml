@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="token">
+  <select id="getTokenInfoByUserId">
+    SELECT
+      user_id as userId,
+      access_token,
+      refresh_token,
+      DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at
+    FROM
+      token
+    WHERE
+      user_id = #{userId}         
+  </select>
+  <select id="getTokenInfoByToken">
+    SELECT
+      user_id as userId,
+      access_token,
+      refresh_token,
+      DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at
+    FROM
+      token
+    WHERE
+      access_token = #{accessToken}
+    AND
+      refresh_token = #{refreshToken}            
+  </select>
+  <insert id="addAccessToken">
+    INSERT INTO token
+    (
+      user_id,
+      access_token,
+      refresh_token,
+      created_at
+    ) VALUES (
+      #{userId},
+      #{accessToken},
+      #{refreshToken},
+      NOW()
+    ) ON DUPLICATE KEY UPDATE 
+    user_id = #{userId},
+    access_token = #{accessToken},
+    refresh_token = #{refreshToken},
+    created_at = NOW()
+  </insert>
+  <insert id="addAdminAccessToken">
+    INSERT INTO token
+    (
+      user_id,
+      access_token,
+      created_at
+    ) VALUES (
+      #{userId},
+      #{accessToken},
+      NOW()
+    ) ON DUPLICATE KEY UPDATE 
+    user_id = #{userId},
+    access_token = #{accessToken},
+    created_at = NOW()
+  </insert>
+  <update id="updateAccessToken">
+    UPDATE token
+    SET
+      access_token = #{accessToken}
+    WHERE
+      user_id = #{userId}
+  </update>
+  <delete id="logout">
+    DELETE
+    FROM
+      token
+    WHERE
+      user_id = #{userId}
+  </delete>
+</mapper>

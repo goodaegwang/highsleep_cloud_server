@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="devices">
+    <select id="getDevices">
+        SELECT
+            HEX(id) as id,
+            name,
+            user_id,
+            device,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            devices
+        WHERE
+            user_id = #{userId}
+        ORDER BY
+            created_at asc
+    </select>
+    <insert id="addDevice">
+        INSERT INTO devices
+        (
+            id,
+            name,
+            user_id,
+            device,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{name},
+            #{userId},
+            #{device},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <delete id="deleteDevice">
+        DELETE
+        FROM
+            devices
+        WHERE
+            id = UNHEX(#{id})
+    </delete>
+    <delete id="deleteDevicesByUserId">
+        DELETE
+        FROM
+            devices
+        WHERE
+            user_id = #{userId}
+    </delete>
+</mapper>

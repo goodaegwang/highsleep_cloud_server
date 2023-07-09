@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dashboard">
+    <select id="getUserAndDeviceCount">
+        SELECT
+            (SELECT count(*) FROM users ) as userCount,
+            (SELECT count(*) FROM devices ) as deviceCount
+    </select>
+    <select id="getDailyStatistics">
+        SELECT
+            DATE(joined_at) as date,
+            count(*) as user_count
+        FROM
+            users
+        WHERE
+            joined_at BETWEEN DATE_ADD(NOW(), INTERVAL -1 WEEK) AND NOW()
+        GROUP BY
+            date
+        ORDER BY
+            date ASC
+    </select>
+    <select id="getWeeklyStatistics">
+        SELECT 
+            DATE_FORMAT(DATE_SUB(joined_at, INTERVAL (DAYOFWEEK(`joined_at`)-1) DAY), '%Y/%m/%d') as start_date,
+            DATE_FORMAT(DATE_SUB(joined_at, INTERVAL (DAYOFWEEK(`joined_at`)-7) DAY), '%Y/%m/%d') as end_date,
+            count(*) as user_count
+        FROM
+            users
+        WHERE
+            joined_at BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+        GROUP BY 
+            start_date, end_date
+        ORDER BY
+            start_date ASC
+    </select>
+    <select id="getMonthlyStatistics">
+        SELECT 
+            MONTH(joined_at) as date, 
+            count(*) as user_count
+        FROM
+            users
+        WHERE
+            joined_at BETWEEN DATE_ADD(NOW(), INTERVAL -1 YEAR) AND NOW()
+        GROUP BY
+            date
+        ORDER BY
+            date ASC
+    </select>
+    <select id="getAnnualStatistics">
+        SELECT 
+            YEAR(joined_at) as date, 
+            count(*) as user_count
+        FROM
+            users
+        GROUP BY
+            date
+        ORDER BY
+            date ASC
+    </select>
+    <select id="getSubscriptionStatus">
+        SELECT
+            type,
+            count(*) as userCount
+        FROM
+            users
+        GROUP BY
+            type
+        ORDER BY
+            type ASC
+    </select>
+</mapper>

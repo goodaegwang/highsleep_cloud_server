@@ -1,0 +1,25 @@
+stages:
+  - build-source
+  - build-docker
+
+build-source:
+  stage: build-source
+  image: node:10-alpine
+  script:
+    - npm i
+    - ls -al
+    - find . -type d -maxdepth 1 -not -name '.' -not -name '..' -not -name 'dist' -exec rm -rf {} +
+    - find . -type f -maxdepth 1 -not -name 'package*.json' -exec rm -rf {} +
+    - rm -rf .git
+  tags:
+    - cloud_server
+    
+build-docker:
+  stage: build-docker
+  image: docker:latest
+  before_script:
+    - apk add sshpass
+  script:
+    - sshpass -p P6?Th%e9LFbM!t ssh -tt -oStrictHostKeyChecking=no root@"$DEPLOY_SERVER" ../home/centos/docker/deploy.sh
+  tags:
+    - cloud_server

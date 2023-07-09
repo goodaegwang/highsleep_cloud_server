@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="heights">
+  <select id="getHeightPerDay">
+    SELECT
+      HEX(id) as id,
+      user_id,
+      height,
+      date
+    FROM
+      height_records
+    WHERE
+      user_id = #{userId}
+    ORDER BY
+      date asc
+  </select>
+  <select id="getHeightByMonth">
+    SELECT
+	    CONCAT(YEAR(date), '-', MONTH(date)) as date_avg,
+      avg(height) as height
+    FROM
+      height_records
+    WHERE
+      user_id = #{userId}
+    GROUP BY date_avg
+    ORDER BY
+      date_avg asc
+  </select>
+  <select id="getHeight">
+    SELECT
+      HEX(id) as id,
+      user_id,
+      height,
+      date
+    FROM
+      height_records
+    WHERE
+      user_id = #{userId}
+    AND
+      date = #{date}
+  </select>
+  <insert id="addHeight">
+    INSERT INTO height_records
+    (
+      id,
+      user_id,
+      height,
+      date
+    ) VALUES (
+      UNHEX(#{id}),
+      #{userId},
+      #{height},
+      #{date}
+    )
+  </insert>
+  <update id="updateHeight">
+    UPDATE height_records
+    SET
+      height = #{height},
+      date = #{date}
+    WHERE
+      id = UNHEX(#{heightId})
+  </update>
+  <delete id="deleteHeight">
+    DELETE
+    FROM
+      height_records
+    WHERE
+      id = UNHEX(#{heightId})
+  </delete>
+  <delete id="deleteHeightsByUserId">
+    DELETE
+    FROM
+      height_records
+    WHERE
+      user_id = #{userId}
+  </delete>
+</mapper>

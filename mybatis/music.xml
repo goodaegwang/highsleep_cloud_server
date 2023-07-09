@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="music">
+    <select id="getMusicList">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            artist,
+            music_path,
+            image_path,
+            genre,
+            status,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            music
+        <if test="searchOption != 'all'">
+        WHERE
+            genre = #{searchOption}
+            <if test="searchText and searchText != ''">
+                AND
+                    title LIKE #{text} OR artist LIKE #{text}
+            </if>
+        </if>
+        <if test="searchOption == 'all'">
+            <if test="searchText and searchText != ''">
+                WHERE
+                    title LIKE #{text} OR artist LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            <choose>
+                <when test="orderBy == 'popularDesc'">
+                    count DESC
+                </when>
+                <otherwise>
+                    created_at DESC
+                </otherwise>
+            </choose>
+    </select>
+    <select id="getMusicHistory">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            mh.user_id,
+            HEX(mh.music_id) as music_id,
+            m.title,
+            m.artist,
+            m.music_path,
+            m.image_path,
+            m.genre,
+            m.status,
+            DATE_FORMAT(CONVERT_TZ(mh.created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at
+        FROM
+            music_history mh
+            INNER JOIN music m ON mh.music_id = m.id
+        WHERE
+            mh.user_id = #{userId}
+        <if test="searchText and searchText != ''">
+        AND
+            m.title LIKE #{text} OR m.artist LIKE #{text}
+        </if>
+        ORDER BY
+            mh.created_at asc
+    </select>
+    <insert id="addMusicHistory">
+        INSERT INTO music_history
+        (
+            user_id,
+            music_id,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{userId},
+            UNHEX(#{musicId}),
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <select id="findDuplicateMusic">
+        SELECT
+            user_id,
+            HEX(music_id) as music_id,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            music_history
+        WHERE
+            user_id = #{userId}
+        AND
+            music_id = UNHEX(#{musicId})
+    </select>
+    <select id="getMusicInfo">
+        SELECT
+            HEX(id) as id,
+            title,
+            music_path,
+            image_path,
+            artist,
+            genre,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            music
+        WHERE
+            id = UNHEX(#{musicId})
+    </select>
+    <select id="getMusicHistoryInfo">
+        SELECT
+            *
+        FROM
+            music_history
+        WHERE
+            user_id = #{userId}
+        AND
+            music_id = UNHEX(#{musicId})
+    </select>
+    <delete id="deleteMusicHistory">
+        DELETE
+        FROM
+            music_history
+        WHERE
+            user_id = #{userId}
+        AND
+            music_id = UNHEX(#{musicId})
+    </delete>
+    <delete id="deleteMusicHistoryByUserId">
+        DELETE
+        FROM
+            music_history
+        WHERE
+            user_id = #{userId}
+    </delete>
+    <update id="musicCount">
+        UPDATE music
+        SET
+            count = count + 1
+        WHERE
+            id = UNHEX(#{musicId})
+    </update>
+
+    <select id="getMusics">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            artist,
+            music_path,
+            image_path,
+            genre,
+            status,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at,
+            count as view_count
+        FROM
+            music
+        <if test="type == all">
+            <if test="status == all">
+                <if test="searchText and searchText!=''">
+                    WHERE
+                        title LIKE #{text} OR artist LIKE #{text}
+                </if>
+            </if>
+            <if test="status != all">
+                WHERE
+                    status = #{status}
+                <if test="searchText and searchText!=''">
+                    AND
+                        title LIKE #{text} OR artist LIKE #{text}
+                </if>
+            </if>
+        </if>
+        <if test="type != all">
+        WHERE
+            type = #{type}
+            <if test="status != all">
+            AND
+                status = #{status}
+            </if>
+            <if test="searchText and searchText!=''">
+            AND
+                title LIKE #{text} OR artist LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            <choose>
+                <when test="orderBy == titleAsc">
+                    title ASC
+                </when>
+                <when test="orderBy == artistAsc">
+                    artist ASC
+                </when>
+                <when test="orderBy == viewCountDesc">
+                    count DESC
+                </when>
+                <otherwise>
+                    created_at ASC
+                </otherwise>
+            </choose>
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <insert id="addMusic">
+        INSERT INTO music
+        (
+            id,
+            title,
+            artist,
+            music_path,
+            image_path,
+            genre,
+            status,
+            updated_at,
+            created_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{artist},
+            #{musicPath},
+            #{imagePath},
+            #{genre},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <update id="updateMusic">
+        UPDATE music
+        set
+            title = #{title},
+            artist = #{artist},
+            music_path = #{musicPath},
+            image_path = #{imagePath},
+            status = #{status},
+            updated_at = NOW()
+        WHERE
+            id = UNHEX(#{musicId})
+    </update>
+    <delete id="deleteMusic">
+        DELETE
+        FROM
+            music
+        WHERE
+            id = UNHEX(#{musicId})
+    </delete>
+</mapper>

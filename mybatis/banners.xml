@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="banners">
+    <select id="getBannersAll">
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            banners
+        ORDER BY
+            seq ASC
+    </select>
+    <select id="getBanners">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            banners
+        <if test="status != 'all'">
+        WHERE
+            status = #{status}
+            <if test="searchText and searchText != ''">
+        AND
+            title LIKE #{text}
+            </if>
+        </if>
+        <if test="status == 'all'">
+            <if test="searchText and searchText != ''">
+        WHERE
+            title LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            created_at DESC
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <select id="getBanner">
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            banners
+        WHERE
+            id = UNHEX(#{bannerId})
+    </select>
+    <insert id="addBanner">
+        INSERT INTO banners
+        (
+            id,
+            title,
+            image_path,
+            <if test="content and content != ''">
+                content,
+            </if>
+            <if test="link and link != ''">
+                link,
+            </if>
+            start_date,
+            end_date,
+            seq,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{imagePath},
+            <if test="content and content != ''">
+                #{content},
+            </if>
+            <if test="link and link != ''">
+                #{link},
+            </if>
+            #{startDate},
+            #{endDate},
+            #{seq},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <update id="updateBanner">
+        UPDATE banners
+        SET
+            title = #{title},
+            image_path = #{imagePath},
+            content = #{content},
+            link = #{link},
+            start_date = #{startDate},
+            end_date = #{endDate},
+            seq = #{seq},
+            updated_at = NOW()
+        WHERE
+            id = UNHEX(#{bannerId})
+    </update>
+    <delete id="deleteBanner">
+        DELETE
+        FROM
+            banners
+        WHERE
+            id = UNHEX(#{bannerId})
+    </delete>
+</mapper>

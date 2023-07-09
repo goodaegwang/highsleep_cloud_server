@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="genre">
+    <select id="getGenreList">
+        SELECT
+            no,
+            name,
+            seq,
+            status,
+            image_path,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            genre
+        ORDER BY
+            seq asc
+    </select>
+    <select id="getGenre">
+        SELECT
+            no,
+            name,
+            seq,
+            status,
+            image_path,
+            count as view_count,
+            (
+                SELECT
+                    DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at
+                FROM
+                    music
+                WHERE
+                    genre = name
+                ORDER BY
+                    created_at DESC
+                limit 1
+            ) as last_sound_track_added_date,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            genre
+        WHERE
+            no = #{no}
+    </select>
+    <insert id="addGenre">
+        INSERT INTO genre
+        (
+            name,
+            seq,
+            status,
+            image_path,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{name},
+            #{seq},
+            #{status},
+            #{imagePath},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <delete id="deleteGenre">
+        DELETE
+        FROM
+            genre
+        WHERE
+            no = #{no}
+    </delete>
+    <update id="genreCount">
+        UPDATE genre
+        SET
+            count = count + 1
+        WHERE
+            no = #{no}
+    </update>
+    <select id="getGenres">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            no,
+            name,
+            seq,
+            status,
+            image_path,
+            (
+                SELECT
+                    count(*)
+                FROM
+                    music
+                WHERE
+                    genre = name
+            ) as sound_track_count,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            (
+                SELECT
+                    DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at
+                FROM
+                    music
+                WHERE
+                    genre = name
+                ORDER BY
+                    created_at DESC
+                limit 1
+            ) as last_sound_track_added_date,
+            count as view_count
+        FROM
+            genre
+        <if test="status == 'all'">
+            <if test="searchText and searchText!=''">
+            WHERE
+                name LIKE #{text}
+            </if>
+        </if>
+        <if test="status != 'all'">
+        WHERE
+            status = #{status}
+            <if test="searchText and searchText!=''">
+            AND
+                name LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            <choose>
+                <when test="orderBy == 'seqAsc'">
+                    seq ASC
+                </when>
+                <when test="orderBy == 'genreNameAsc'">
+                    name ASC
+                </when>
+                <when test="orderBy == 'inquiryDesc'">
+                    count DESC
+                </when>
+                <when test="orderBy == 'createdAtAsc'">
+                    created_at ASC
+                </when>
+                <otherwise>
+                    seq DESC
+                </otherwise>
+            </choose>
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <update id="updateGenre">
+        UPDATE genre
+        SET
+            name = #{name},
+            seq = #{seq},
+            status = #{status},
+            image_path = #{imagePath},
+            updated_at = NOW()
+        WHERE
+            no = #{genreNo}
+    </update>
+    <update id="updateGenreSeq">
+        UPDATE genre
+        SET
+            seq = #{newSeq}
+        WHERE
+            seq = #{oldSeq}
+    </update>
+</mapper>

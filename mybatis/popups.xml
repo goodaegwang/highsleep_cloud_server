@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="popups">
+    <select id="getPopupAll">
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            popups
+        ORDER BY
+            seq ASC
+    </select>
+
+    <select id="getPopups">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            popups
+        <if test="status == 'all'">
+            <if test="searchText and searchText!=''">
+                WHERE
+                    title LIKE #{text}
+            </if>
+        </if>
+        <if test="status != 'all'">
+            WHERE
+                status = #{status}
+            <if test="searchText and searchText!=''">
+                AND
+                    title LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            created_at DESC
+    </select>
+    <select id="getPopup">
+        SELECT
+            HEX(id) as id,
+            title,
+            image_path,
+            content,
+            link,
+            DATE_FORMAT(CONVERT_TZ(start_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as start_date,
+            DATE_FORMAT(CONVERT_TZ(end_date, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as end_date,
+            seq,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            popups
+        WHERE
+            id = UNHEX(#{popupId})
+    </select>
+    <insert id="addPopup">
+        INSERT INTO popups
+        (
+            id,
+            title,
+            image_path,
+            <if test="content and content != ''">
+                content,
+            </if>
+            <if test="link and link != ''">
+                link,
+            </if>
+            start_date,
+            end_date,
+            seq,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{imagePath},
+            <if test="content and content != ''">
+                #{content},
+            </if>
+            <if test="link and link != ''">
+                #{link},
+            </if>
+            #{startDate},
+            #{endDate},
+            #{seq},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <update id="updatePopup">
+        UPDATE popups
+        SET
+            title = #{title},
+            image_path = #{imagePath},
+            <if test="content and content != ''">
+                content = #{content},
+            </if>
+            <if test="link and link != ''">
+                link = #{link},
+            </if>
+            start_date = #{startDate},
+            end_date = #{endDate},
+            seq = #{seq}
+        WHERE
+            id = UNHEX(#{popupId})
+    </update>
+    <delete id="deletePopup">
+        DELETE
+        FROM
+            popups
+        WHERE
+            id = UNHEX(#{popupId})
+    </delete>
+</mapper>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="alarms">
+    <select id="getAlarmsOfUser">
+        SELECT
+            HEX(a.id) as id,
+            a.title,
+            a.content,
+            a.status,
+            DATE_FORMAT(CONVERT_TZ(a.created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(a.updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            alarms_users au
+            INNER JOIN alarms a ON au.alarm_id = a.id
+        WHERE
+            au.user_id = #{userId}
+        ORDER BY
+            a.created_at desc
+    </select>
+    <delete id="deleteUserAlarm">
+        DELETE
+        FROM
+            alarms_users
+        WHERE
+            alarm_id = UNHEX(#{alarmId})
+        AND
+            user_id = #{userId}
+    </delete>
+    <select id="getAlarms">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            status,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            alarms
+        <if test="searchText and searchText != ''">
+        WHERE
+            title LIKE #{text}
+        </if>
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <select id="getAlarm">
+        SELECT
+            HEX(id) as id,
+            title,
+            content,
+            status,
+            DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as created_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            alarms
+        WHERE
+            id = UNHEX(#{alarmId})
+    </select>
+    <insert id="addAlarm">
+        INSERT INTO alarms
+        (
+            id,
+            title,
+            content,
+            status,
+            created_at,
+            updated_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{title},
+            #{content},
+            'A',
+            NOW(),
+            NOW()
+        )
+    </insert>
+    <insert id="addAlarmUsers">
+        INSERT INTO alarms_users
+        (
+            alarm_id,
+            user_id,
+            created_at
+        ) VALUES (
+            UNHEX(#{id}),
+            #{userId},
+            NOW()
+        )
+    </insert>
+    <update id="updateAlarm">
+        UPDATE alarms
+        SET
+            title = #{title},
+            content = #{content},
+            status = #{status},
+            updated_at = NOW()
+        WHERE
+            id = UNHEX(#{alarmId})
+    </update>
+    <delete id="deleteAlarmsByAlarmId">
+        DELETE
+        FROM
+            alarms_users
+        WHERE
+            alarm_id = UNHEX(#{alarmId})
+    </delete>
+    <delete id="deleteAlarm">
+        DELETE
+        FROM
+            alarms
+        WHERE
+            id = UNHEX(#{alarmId})
+    </delete>
+    
+    <delete id="deleteAlarmsByUserId">
+        DELETE
+        FROM
+            alarms_users
+        WHERE
+            user_id = #{userId}
+    </delete>
+</mapper>

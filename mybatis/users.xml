@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="users">
+    <select id="getUserIds">
+        SELECT
+            user_id as userId
+        FROM
+            users
+        ORDER BY
+            user_id DESC
+    </select>
+    <select id="getUserInfo">
+        SELECT
+            user_id,
+            email,
+            name,
+            type,
+            status,
+            password,
+            DATE_FORMAT(CONVERT_TZ(password_updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as password_updated_at,
+            phone,
+            birthday,
+            is_stay_login,
+            DATE_FORMAT(CONVERT_TZ(joined_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as joined_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            users
+        WHERE
+            user_id = #{userId}
+        AND
+            password = #{password}
+    </select>
+    <select id="getUserInfoByUserId">
+        SELECT
+            user_id,
+            email,
+            name,
+            type,
+            status,
+            password,
+            DATE_FORMAT(CONVERT_TZ(password_updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as password_updated_at,
+            phone,
+            birthday,
+            is_stay_login,
+            DATE_FORMAT(CONVERT_TZ(joined_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as joined_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            users
+        WHERE
+            user_id = #{userId}
+    </select>
+    <update id="updateUserInfo">
+        UPDATE users
+        SET
+        <if test="phone and phone != ''">
+            phone = #{phone},
+        </if>
+        <if test="birthday and birthday != ''">
+            birthday = #{birthday},
+        </if>
+        <if test="password and password != ''">
+            password = #{password},
+            password_updated_at = NOW(),
+        </if>
+            updated_at = NOW()
+        WHERE
+            user_id = #{userId}
+    </update>
+    <delete id="deleteUser">
+        DELETE
+        FROM
+            users
+        WHERE
+            user_id = #{userId}
+    </delete>
+    <update id="updateIsStayLoginYN">
+        UPDATE users
+        SET
+            is_stay_login = #{isStayLogin}
+        WHERE
+            user_id = #{userId}
+    </update>
+
+    <select id="getJoinTypes">
+        SELECT
+            type
+        FROM
+            users
+        GROUP BY
+            type
+    </select>
+    <select id="getUsers">
+        <bind name="text" value="'%'+searchText+'%'"></bind>
+        SELECT
+            user_id,
+            email,
+            name,
+            type,
+            status,
+            password,
+            DATE_FORMAT(CONVERT_TZ(password_updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as password_updated_at,
+            phone,
+            birthday,
+            is_stay_login,
+            DATE_FORMAT(CONVERT_TZ(joined_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as joined_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            users
+        <if test="type == all">
+            <if test="searchText and searchText!=''">
+                WHERE
+                    name LIKE #{text} OR email LIKE #{text} OR phone LIKE #{text}
+            </if>
+        </if>
+        <if test="type != all">
+        WHERE
+            type = #{status}
+            <if test="searchText and searchText!=''">
+            AND
+                name LIKE #{text} OR email LIKE #{text} OR phone LIKE #{text}
+            </if>
+        </if>
+        ORDER BY
+            <choose>
+                <when test="orderBy == nameAsc">
+                    name ASC
+                </when>
+                <!-- <when test="orderBy == deviceIdentifierAsc">
+                    d.identifier ASC
+                </when>
+                <when test="orderBy == deviceIdentifierDesc">
+                    d.identifier DESC
+                </when> -->
+                <otherwise>
+                    joined_at ASC
+                </otherwise>
+            </choose>
+        limit ${limit}
+        offset ${offset}
+    </select>
+    <select id="getUser">
+        SELECT
+            user_id,
+            email,
+            name,
+            type,
+            status,
+            password,
+            DATE_FORMAT(CONVERT_TZ(password_updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as password_updated_at,
+            phone,
+            birthday,
+            is_stay_login,
+            DATE_FORMAT(CONVERT_TZ(joined_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as joined_at,
+            DATE_FORMAT(CONVERT_TZ(updated_at, @@session.time_zone, '+00:00'),'%Y-%m-%dT%TZ') as updated_at
+        FROM
+            users
+        WHERE
+            user_id = #{userId}
+    </select>
+    <update id="updateUser">
+        UPDATE users
+        SET
+            name = #{name},
+            email = #{email},
+            phone = #{phone},
+            birthday = #{birthday},
+            status = #{status}
+        WHERE
+            user_id = #{userId}
+    </update>
+</mapper>

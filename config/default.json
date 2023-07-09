@@ -1,0 +1,29 @@
+{
+    "server": {
+        "port": 4000,
+        "NODE_ENV": "development",
+        "clientId": "fx0V8rLXEBUkgH0QJy0S",
+        "clientSecret": "hL6g7h1KJ3PIMNkRtphd",
+        "logCategory": "development",
+        "admin": {
+            "id": "highsleep",
+            "pw": "highsleep!@3"
+        },
+        "mysql": {
+            "host": "175.45.194.61",
+            "port": "3306",
+            "user": "goodaegwang",
+            "password": "Rneorhkd123@",
+            "database": "high_sleep",
+            "connectionLimit": 30
+        },
+        "sens": {
+            "url": "https://kr.object.ncloudstorage.com",
+            "accessKey": "BCSHzHLeWpTywfwRrjyi",
+            "secretKey": "U5FrlsXFr2sdKy9SkH1bqTczLnT5MK7PgdELdgEA",
+            "serviceId": "ncp:sms:kr:288075999014:highsleep",
+            "bucketName": "highsleep-files",
+            "callNumber": "01084840981"
+        }
+    }
+}
